@@ -1,0 +1,6 @@
+[TICKER], [COMPANY NAME]
+AAPL-//-Apple Inc
+TSLA-//-Tesla Inc
+AMZN-//-Amazon.com, Inc
+GOOGL-//-Alphabet Inc
+MSFT-//-Microsoft Corp
