@@ -48,4 +48,13 @@ public class DataManager {
         return companies;
     }
 
+  public Company getCompany(String name) {
+    for (Company c : companies) {
+      if (c.getName().equals(name)) {
+        return c;
+      }
+    }
+    return null;
+  }
+
 }

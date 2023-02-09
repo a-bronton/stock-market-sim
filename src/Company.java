@@ -2,6 +2,7 @@ import java.util.HashMap;
 
 public class Company {
     public HashMap<String, Integer> data = new HashMap<>();
+  private int i = data.size();
 
     private String name;
     public Company(String name) {
@@ -11,4 +12,9 @@ public class Company {
     public String getName() {
         return name;
     }
+
+  public void addData() {
+    i++;
+    data.put("" + i, (int) (Math.random() * 100));
+  }
 }
