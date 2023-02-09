@@ -33,6 +33,7 @@ public class MainPanel extends JPanel {
 
   // TODO: Utilities
   DataManager dMan = new DataManager();
+  boolean dotsEnabled = true;
 
   public MainPanel() {
     // TODO: Initial Setup
@@ -64,13 +65,44 @@ public class MainPanel extends JPanel {
 
   private void setupPanels() {
     // TODO: Top Bar
+    topBar.setLayout(null);
     topBar.setBackground(color2);
-    topBar.setPreferredSize(new Dimension(0, 50));
+    topBar.setPreferredSize(new Dimension((int) getPreferredSize().getWidth(), 50));
 
     JLabel title = new JLabel("Stocks");
     title.setFont(font1.deriveFont(Font.BOLD, 32));
     title.setForeground(Color.WHITE);
+    title.setBounds((int) (topBar.getPreferredSize().getWidth() / 2) - 50, 4, 200, 40);
     topBar.add(title);
+
+    JButton toggleDotsButton = new JButton(new ImageIcon(getClass().getResource("/switch_on.png")));
+    toggleDotsButton.setBounds((int) topBar.getPreferredSize().getWidth() - 35,0, 30,30);
+    toggleDotsButton.setBorderPainted(false);
+    toggleDotsButton.setContentAreaFilled(false);
+    toggleDotsButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        dotsEnabled = !dotsEnabled;
+        displayData(dMan.getCompany(selectedCompany), (Graphics2D) stockGraph.getGraphics());
+        if (dotsEnabled) {
+          toggleDotsButton.setIcon(new ImageIcon(getClass().getResource("/switch_on.png")));
+        } else {
+          toggleDotsButton.setIcon(new ImageIcon(getClass().getResource("/switch_off.png")));
+        }
+      }
+    });
+    toggleDotsButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        setCursor(new Cursor(Cursor.HAND_CURSOR));
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+      }
+    });
+    topBar.add(toggleDotsButton);
 
     add(topBar, BorderLayout.NORTH);
 
@@ -88,23 +120,9 @@ public class MainPanel extends JPanel {
     // TODO: CENTER PANEL
     centerPanel.setBackground(bgColor);
 
-    tickerLabel.setBounds(110, 30, 100, 25);
-    tickerLabel.setFont(font1.deriveFont(Font.BOLD, 20));
-    tickerLabel.setForeground(Color.WHITE);
-    centerPanel.add(tickerLabel);
-
-    companyLabel.setBounds(110, 55, 400, 25);
-    companyLabel.setFont(font1.deriveFont(Font.ITALIC, 15));
-    companyLabel.setForeground(Color.WHITE);
-    centerPanel.add(companyLabel);
-
-    // JPanel topBar = new JPanel();
-    // topBar.setBounds(100, 25, 500, 55);
-    // topBar.setBackground(bgColor);
-    // centerPanel.add(topBar);
-
     stockGraph.setBackground(color2);
     stockGraph.setBounds(100, 25, 500, 425);
+    stockGraph.setDoubleBuffered(true);
     centerPanel.add(stockGraph);
 
     add(centerPanel, BorderLayout.CENTER);
@@ -141,8 +159,6 @@ public class MainPanel extends JPanel {
         public void actionPerformed(ActionEvent e) {
 
           Graphics2D g2 = (Graphics2D) stockGraph.getGraphics();
-          stockGraph.paint(g2);
-          g2.setColor(Color.GREEN);
 
           selectedCompany = ((TickerButton) e.getSource()).getText();
           tickerLabel.setText(selectedCompany);
@@ -150,40 +166,43 @@ public class MainPanel extends JPanel {
           for (Component c : leftPanel.getComponents()) {
             c.setBackground(color2);
           }
+
           ((TickerButton) e.getSource()).setBackground(hoverColor);
 
           // TODO: DISPLAY
-          boolean companyFound = false;
-          for (int i = 0; i < dMan.getCompanies().length; i++) {
-            if (dMan.getCompanies()[i] != null) {
-              if (dMan.getCompanies()[i].getName().equals(selectedCompany)) {
-                displayData(dMan.getCompanies()[i], g2);
-                companyFound = true;
-              }
-            }
-          }
-          if (!companyFound) {
-            System.out.println("Couldn't Find Company");
-          }
+          displayData(dMan.getCompany(selectedCompany), (Graphics2D) stockGraph.getGraphics());
         }
       });
+
     }
   }
 
-  public void displayData(Company c, Graphics g2) {
-    System.out.println("Displaying data for: " + c.getName());
+  public void displayData(Company c, Graphics2D g2) {
+//    System.out.println("Displaying data for: " + c.getName());
+    stockGraph.paint(g2);
+    g2.setColor(Color.GREEN);
+    g2.setStroke(new BasicStroke(3));
+    g2.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
 
     ArrayList<int[]> data = c.data;
-    int increment = (int) (stockGraph.getBounds().getWidth() / data.size());
-    System.out.println("Width: " + stockGraph.getBounds().getWidth());
-    System.out.println("Increment: " + increment);
+    if (data.get(data.size() - 1)[1] < data.get(data.size() - 2)[1]) {
+      g2.setColor(Color.RED);
+    } else {
+      g2.setColor(Color.GREEN);
+    }
+
+    double increment = stockGraph.getBounds().getWidth() / data.size();
+//    System.out.println("Width: " + stockGraph.getBounds().getWidth());
+//    System.out.println("Increment: " + increment);
 
     int[][] pts = new int[data.size()][data.size()];
 
     int x = 0;
     int i = 0;
     for (int[] pair : data) {
-      g2.fillOval(x - 5, (int) stockGraph.getBounds().getHeight() - pair[1] - 5, 10, 10);
+      if (dotsEnabled) {
+        g2.fillOval(x - 3, (int) stockGraph.getBounds().getHeight() - pair[1] - 3, 6, 6);
+      }
       pts[i][0] = x;
       pts[i][1] = (int) stockGraph.getBounds().getHeight() - pair[1];
       x += increment;
@@ -193,6 +212,12 @@ public class MainPanel extends JPanel {
     for (int j = 0; j < pts.length - 1; j++) {
       g2.drawLine(pts[j][0], pts[j][1], pts[j + 1][0], pts[j + 1][1]);
     }
+
+    g2.setColor(Color.WHITE);
+    g2.setFont(font1.deriveFont(Font.BOLD, 22));
+    g2.drawString(selectedCompany, 5, 20);
+    g2.setFont(font1.deriveFont(Font.PLAIN, 18));
+    g2.drawString(dMan.getTickers().get(selectedCompany), 5, 40);
   }
 
   public class UpdateThread extends Thread {
@@ -203,12 +228,11 @@ public class MainPanel extends JPanel {
         if (selectedCompany != null) {
           stockGraph.paint(g2);
           dMan.getCompany(selectedCompany).addData();
-          g2.setColor(Color.GREEN);
           displayData(dMan.getCompany(selectedCompany), g2);
         }
-        System.out.println("Doing it");
+//        System.out.println("Doing it");
         try {
-          sleep(10000);
+          sleep(1000);
         } catch (Exception e) {
           e.printStackTrace();
         }

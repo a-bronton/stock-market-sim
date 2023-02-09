@@ -4,3 +4,4 @@ TSLA-//-Tesla Inc
 AMZN-//-Amazon.com, Inc
 GOOGL-//-Alphabet Inc
 MSFT-//-Microsoft Corp
+TEST-//-Testing Inc

@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.security.spec.ECField;
 import java.util.HashMap;
 
 public class DataManager {
@@ -50,7 +51,7 @@ public class DataManager {
 
   public Company getCompany(String name) {
     for (Company c : companies) {
-      if (c.getName().equals(name)) {
+      if (c != null && c.getName().equals(name)) {
         return c;
       }
     }

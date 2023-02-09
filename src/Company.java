@@ -16,7 +16,11 @@ public class Company {
 
     public void addData() {
         i++;
-        data.add(new int[]{i, (int) (Math.random() * 400)});
+        int randVal = data.get(data.size() - 1)[1] + (int) (Math.random() * 20) - 10;
+        if (randVal < 2) {
+            randVal = 2;
+        }
+        data.add(new int[]{i, randVal});
     }
 
 }
