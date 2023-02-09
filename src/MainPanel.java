@@ -5,12 +5,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MainPanel extends JPanel {
-
-  private int drawDataDelay = 0;
 
   // TODO: General Fields
   private String selectedCompany;
@@ -43,11 +42,13 @@ public class MainPanel extends JPanel {
     dMan.loadCompanies();
     dMan.loadCompanyData();
 
+    new UpdateThread().start();
+
     for (Company c : dMan.getCompanies()) {
       if (c != null) {
         System.out.println(c.getName() + " {");
-        for (Map.Entry<String, Integer> pair : c.data.entrySet()) {
-          System.out.println("   " + pair.getKey() + ": " + pair.getValue());
+        for (int[] pair : c.data) {
+          System.out.println("   " + pair[0] + ": " + pair[1]);
         }
         System.out.println("}\n");
       }
@@ -172,7 +173,7 @@ public class MainPanel extends JPanel {
   public void displayData(Company c, Graphics g2) {
     System.out.println("Displaying data for: " + c.getName());
 
-    HashMap<String, Integer> data = c.data;
+    ArrayList<int[]> data = c.data;
     int increment = (int) (stockGraph.getBounds().getWidth() / data.size());
     System.out.println("Width: " + stockGraph.getBounds().getWidth());
     System.out.println("Increment: " + increment);
@@ -181,10 +182,10 @@ public class MainPanel extends JPanel {
 
     int x = 0;
     int i = 0;
-    for (Map.Entry<String, Integer> pair : data.entrySet()) {
-      g2.fillOval(x - 5, (int) stockGraph.getBounds().getHeight() - pair.getValue() - 5, 10, 10);
+    for (int[] pair : data) {
+      g2.fillOval(x - 5, (int) stockGraph.getBounds().getHeight() - pair[1] - 5, 10, 10);
       pts[i][0] = x;
-      pts[i][1] = (int) stockGraph.getBounds().getHeight() - pair.getValue();
+      pts[i][1] = (int) stockGraph.getBounds().getHeight() - pair[1];
       x += increment;
       i++;
     }
@@ -194,19 +195,24 @@ public class MainPanel extends JPanel {
     }
   }
 
-  public void paintComponent(Graphics g) {
-    super.paintComponent(g);
-
-    drawDataDelay++;
-
-    Graphics2D g2 = (Graphics2D) stockGraph.getGraphics();
-    if (selectedCompany != null && drawDataDelay > 1000) {
-      dMan.getCompany(selectedCompany).addData();
-      g2.setColor(Color.GREEN);
-      displayData(dMan.getCompany(selectedCompany), g2);
-      drawDataDelay = 0;
+  public class UpdateThread extends Thread {
+    @Override
+    public void run() {
+      while (true) {
+        Graphics2D g2 = (Graphics2D) stockGraph.getGraphics();
+        if (selectedCompany != null) {
+          stockGraph.paint(g2);
+          dMan.getCompany(selectedCompany).addData();
+          g2.setColor(Color.GREEN);
+          displayData(dMan.getCompany(selectedCompany), g2);
+        }
+        System.out.println("Doing it");
+        try {
+          sleep(10000);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
     }
-
-    stockGraph.repaint();
   }
 }

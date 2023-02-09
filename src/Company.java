@@ -1,8 +1,9 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Company {
-    public HashMap<String, Integer> data = new HashMap<>();
-  private int i = data.size();
+    public ArrayList<int[]> data = new ArrayList<>();
+    private int i = data.size();
 
     private String name;
     public Company(String name) {
@@ -13,8 +14,9 @@ public class Company {
         return name;
     }
 
-  public void addData() {
-    i++;
-    data.put("" + i, (int) (Math.random() * 100));
-  }
+    public void addData() {
+        i++;
+        data.add(new int[]{i, (int) (Math.random() * 400)});
+    }
+
 }

@@ -31,7 +31,7 @@ public class DataManager {
                 String line = in.readLine();
                 while ((line = in.readLine()) != null) {
                     String[] pair = line.split(",");
-                    companies[i].data.put(pair[0], Integer.parseInt(pair[1]));
+                    companies[i].data.add(new int[]{Integer.parseInt(pair[0]), Integer.parseInt(pair[1])});
                 }
                 i++;
             } catch (Exception e) {
