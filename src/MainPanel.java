@@ -203,10 +203,10 @@ public class MainPanel extends JPanel {
     if (selectedCompany != null && drawDataDelay > 1000) {
       dMan.getCompany(selectedCompany).addData();
       g2.setColor(Color.GREEN);
-      //displayData(dMan.getCompany(selectedCompany), g2);
+      displayData(dMan.getCompany(selectedCompany), g2);
       drawDataDelay = 0;
     }
 
-    repaint();
+    stockGraph.repaint();
   }
 }
