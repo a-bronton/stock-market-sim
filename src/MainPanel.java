@@ -37,6 +37,9 @@ public class MainPanel extends JPanel {
   DataManager dMan = new DataManager();
   boolean dotsEnabled = true;
 
+  // TODO: USER
+  User user = new User(500);
+
   public MainPanel() {
     // TODO: Initial Setup
     setPreferredSize(new Dimension(900, 600));
@@ -257,6 +260,10 @@ public class MainPanel extends JPanel {
     String opening = "Opening: $" + df.format(c.data.get(0)[1]);
     int textWidth = (int) g2.getFontMetrics().getStringBounds(opening, g2).getWidth();
     g2.drawString(opening, (int) stockGraph.getBounds().getWidth() - textWidth - 10, 20);
+    // BALANCE
+    String balance = "Balance: $" + user.getBalance();
+    textWidth = (int) g2.getFontMetrics().getStringBounds(balance, g2).getWidth();
+    g2.drawString(balance, (int) stockGraph.getBounds().getWidth() - textWidth - 10, 40);
   }
 
   public class UpdateThread extends Thread {

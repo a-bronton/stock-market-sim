@@ -17,8 +17,12 @@ public class Company {
     public void addData() {
         i++;
         double randVal = data.get(data.size() - 1)[1] + (Math.random() * 20) - 10;
+        int crashRNG = (int) (Math.random() * 10);
         if (randVal < 2) {
             randVal = 2;
+        }
+        if (crashRNG == 100) {
+            randVal = 0;
         }
         data.add(new double[]{i, randVal});
     }
