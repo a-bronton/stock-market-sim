@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Company {
-    public ArrayList<int[]> data = new ArrayList<>();
+    public ArrayList<double[]> data = new ArrayList<>();
     private int i = data.size();
 
     private String name;
@@ -16,11 +16,11 @@ public class Company {
 
     public void addData() {
         i++;
-        int randVal = data.get(data.size() - 1)[1] + (int) (Math.random() * 20) - 10;
+        double randVal = data.get(data.size() - 1)[1] + (Math.random() * 20) - 10;
         if (randVal < 2) {
             randVal = 2;
         }
-        data.add(new int[]{i, randVal});
+        data.add(new double[]{i, randVal});
     }
 
 }
