@@ -1,11 +1,13 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +34,8 @@ public class MainPanel extends JPanel {
   private JPanel stockGraph = new JPanel();
   private JLabel tickerLabel = new JLabel();
   private JLabel companyLabel = new JLabel();
+  private JLabel unitsOwnedLabel;
+  private JLabel balanceLabel;
 
   // TODO: Utilities
   DataManager dMan = new DataManager();
@@ -39,10 +43,11 @@ public class MainPanel extends JPanel {
 
   // TODO: USER
   User user = new User(500);
+  int unitsSelected = 1;
 
   public MainPanel() {
     // TODO: Initial Setup
-    setPreferredSize(new Dimension(900, 600));
+    setPreferredSize(new Dimension(900, 650));
     setBackground(bgColor);
     setLayout(new BorderLayout());
     dMan.loadCompanies();
@@ -97,7 +102,7 @@ public class MainPanel extends JPanel {
     centerPanel.setBackground(bgColor);
 
     stockGraph.setBackground(color2);
-    stockGraph.setBounds(100, 25, 500, 425);
+    stockGraph.setBounds(100, 25, 560, 425);
     stockGraph.setDoubleBuffered(true);
     centerPanel.add(stockGraph);
 
@@ -136,6 +141,62 @@ public class MainPanel extends JPanel {
       }
     });
     centerPanel.add(toggleDotsButton);
+
+    balanceLabel = new JLabel("Balance: $" + user.getBalance());
+    balanceLabel.setForeground(Color.WHITE);
+    balanceLabel.setFont(font1.deriveFont(Font.BOLD, 18));
+    balanceLabel.setBounds(100, 470, 200, 40);
+    centerPanel.add(balanceLabel);
+
+    JButton buyButton = new JButton("Buy: " + unitsSelected + "x");
+    buyButton.setBorder(new MatteBorder(3, 0, 0, 0, bgColor));
+    buyButton.setBackground(color2);
+    buyButton.setFocusable(false);
+    buyButton.setForeground(Color.WHITE);
+    buyButton.setBounds(100 + (int) stockGraph.getBounds().getWidth() - 80, 450, 80, 30);
+    centerPanel.add(buyButton);
+
+    JButton sellButton = new JButton("Sell: " + unitsSelected + "x");
+    sellButton.setBorder(new MatteBorder(3, 0, 0, 0, bgColor));
+    sellButton.setBackground(color2);
+    sellButton.setFocusable(false);
+    sellButton.setForeground(Color.WHITE);
+    sellButton.setBounds(100 + (int) stockGraph.getBounds().getWidth() - 80, 480, 80, 30);
+    centerPanel.add(sellButton);
+
+    JButton incrementUpButton = new JButton("+");
+    incrementUpButton.setBorder(new MatteBorder(3, 3, 0, 3, bgColor));
+    incrementUpButton.setForeground(Color.WHITE);
+    incrementUpButton.setBackground(color2);
+    incrementUpButton.setFocusable(false);
+    incrementUpButton.setBounds(100 + (int) stockGraph.getBounds().getWidth() - 80 - 30, 450, 30, 30);
+    centerPanel.add(incrementUpButton);
+
+    JButton incrementDownButton = new JButton("-");
+    incrementDownButton.setBorder(new MatteBorder(3, 3, 0, 3, bgColor));
+    incrementDownButton.setForeground(Color.WHITE);
+    incrementDownButton.setBackground(color2);
+    incrementDownButton.setFocusable(false);
+    incrementDownButton.setBounds(100 + (int) stockGraph.getBounds().getWidth() - 80 - 30, 480, 30, 30);
+    centerPanel.add(incrementDownButton);
+
+    unitsOwnedLabel = new JLabel("Units Owned: 0");
+    unitsOwnedLabel.setForeground(Color.WHITE);
+    unitsOwnedLabel.setBounds((int) stockGraph.getBounds().getWidth() - 135, 450, 135, 30);
+    unitsOwnedLabel.setFont(font1.deriveFont(Font.PLAIN, 15));
+    centerPanel.add(unitsOwnedLabel);
+
+    JTextField selectUnitsField = new JTextField(15);
+    selectUnitsField.setBounds(100 + (int) stockGraph.getBounds().getWidth() - 80, 510, 80, 20);
+    selectUnitsField.setBackground(color2);
+    selectUnitsField.setBorder(new MatteBorder(3, 0, 0, 0, bgColor));
+    selectUnitsField.setForeground(Color.WHITE);
+    selectUnitsField.setCaretColor(Color.WHITE);
+    selectUnitsField.setFont(font1.deriveFont(Font.BOLD, 12));
+    selectUnitsField.setHorizontalAlignment(JTextField.CENTER);
+    centerPanel.add(selectUnitsField);
+
+    setupTradingButtons(buyButton, sellButton, incrementUpButton, incrementDownButton, selectUnitsField);
 
     add(centerPanel, BorderLayout.CENTER);
   }
@@ -183,6 +244,7 @@ public class MainPanel extends JPanel {
 
           // TODO: DISPLAY
           displayData(dMan.getCompany(selectedCompany), (Graphics2D) stockGraph.getGraphics());
+          unitsOwnedLabel.setText("Units Owned: " + dMan.getCompany(selectedCompany).getUnitsOwned());
         }
       });
 
@@ -197,7 +259,7 @@ public class MainPanel extends JPanel {
     g2.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
 
     ArrayList<double[]> data = c.data;
-    if (data.get(data.size() - 1)[1] <= data.get(data.size() - 2)[1]) {
+    if (c.getCurrentValue() <= data.get(data.size() - 2)[1]) {
       g2.setColor(Color.RED);
     } else {
       g2.setColor(Color.GREEN);
@@ -226,7 +288,7 @@ public class MainPanel extends JPanel {
     }
 
     // TODO: TEXTS
-    DecimalFormat df = new DecimalFormat("0.##");
+    DecimalFormat df = new DecimalFormat("0.00");
     g2.setColor(Color.WHITE);
     // TICKER SYMBOL
     g2.setFont(font1.deriveFont(Font.BOLD, 22));
@@ -257,13 +319,9 @@ public class MainPanel extends JPanel {
     }
     // OPENING
     g2.setColor(Color.WHITE);
-    String opening = "Opening: $" + df.format(c.data.get(0)[1]);
+    String opening = "Opening: $" + df.format(c.getOpening());
     int textWidth = (int) g2.getFontMetrics().getStringBounds(opening, g2).getWidth();
     g2.drawString(opening, (int) stockGraph.getBounds().getWidth() - textWidth - 10, 20);
-    // BALANCE
-    String balance = "Balance: $" + user.getBalance();
-    textWidth = (int) g2.getFontMetrics().getStringBounds(balance, g2).getWidth();
-    g2.drawString(balance, (int) stockGraph.getBounds().getWidth() - textWidth - 10, 40);
   }
 
   public class UpdateThread extends Thread {
@@ -284,5 +342,69 @@ public class MainPanel extends JPanel {
         }
       }
     }
+  }
+
+  public void setupTradingButtons(JButton buyButton, JButton sellButton, JButton incrementUpButton, JButton incrementDownButton, JTextField selectUnitsField) {
+    DecimalFormat df = new DecimalFormat("0.00");
+    buyButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Company company = dMan.getCompany(selectedCompany);
+        if (user.getBalance() >= company.getCurrentValue() * unitsSelected) {
+          user.subtractFromBalance(company.getCurrentValue());
+          balanceLabel.setText("Balance: $" + df.format(user.getBalance()));
+          company.addUnitsOwned(unitsSelected);
+          unitsOwnedLabel.setText("Units Owned: " + company.getUnitsOwned());
+        } else {
+          JOptionPane.showMessageDialog(null, "Insufficient Funds");
+        }
+      }
+    });
+
+    sellButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (dMan.getCompany(selectedCompany).getUnitsOwned() >= unitsSelected) {
+          user.addToBalance(dMan.getCompany(selectedCompany).getCurrentValue() * unitsSelected);
+          balanceLabel.setText("Balance: $" + df.format(user.getBalance()));
+          dMan.getCompany(selectedCompany).addUnitsOwned(-unitsSelected);
+          unitsOwnedLabel.setText("Units Owned: " + dMan.getCompany(selectedCompany).getUnitsOwned());
+        }
+      }
+    });
+
+    incrementUpButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        unitsSelected++;
+        buyButton.setText("Buy: " + unitsSelected + "x");
+        sellButton.setText("Sell: " + unitsSelected + "x");
+      }
+    });
+
+    incrementDownButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (unitsSelected > 1) {
+          unitsSelected--;
+          buyButton.setText("Buy: " + unitsSelected + "x");
+          sellButton.setText("Sell: " + unitsSelected + "x");
+        }
+      }
+    });
+
+    selectUnitsField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        try {
+          unitsSelected = Integer.parseInt(selectUnitsField.getText());
+          buyButton.setText("Buy: " + unitsSelected + "x");
+          sellButton.setText("Sell: " + unitsSelected + "x");
+          selectUnitsField.setText("");
+        } catch (Exception exc) {
+          JOptionPane.showMessageDialog(null, "Invalid Input");
+        }
+      }
+    });
   }
 }

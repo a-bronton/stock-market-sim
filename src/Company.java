@@ -14,17 +14,40 @@ public class Company {
         return name;
     }
 
+    private int unitsOwned = 0;
+
     public void addData() {
+//        if (data.size() > 120) {
+//            data.remove(0);
+//        }
         i++;
+
         double randVal = data.get(data.size() - 1)[1] + (Math.random() * 20) - 10;
-        int crashRNG = (int) (Math.random() * 10);
         if (randVal < 2) {
             randVal = 2;
         }
-        if (crashRNG == 100) {
+
+        int crashRNG = (int) (Math.random() * 1000);
+        if (crashRNG == 3) {
             randVal = 0;
         }
         data.add(new double[]{i, randVal});
+    }
+
+    public int getUnitsOwned() {
+        return unitsOwned;
+    }
+
+    public void addUnitsOwned(int units) {
+        unitsOwned += units;
+    }
+
+    public double getOpening() {
+        return data.get(0)[1];
+    }
+
+    public double getCurrentValue() {
+        return data.get(data.size() - 1)[1];
     }
 
 }
