@@ -1,22 +1,24 @@
+package stockTrading;
+
+import cookieClicker.CookiePanel;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.LineBorder;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.nio.file.attribute.UserPrincipalLookupService;
+import java.awt.event.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 public class MainPanel extends JPanel {
 
+  // TODO: FRAME
+  JFrame window;
+
   // TODO: General Fields
   private String selectedCompany;
+  private int updateTime = 10; // (SECONDS)
 
   // TODO: Colors
   private Color bgColor = new Color(47, 47, 47);
@@ -39,14 +41,32 @@ public class MainPanel extends JPanel {
 
   // TODO: Utilities
   DataManager dMan = new DataManager();
-  boolean dotsEnabled = true;
+  boolean dotsEnabled = false;
 
   // TODO: USER
-  User user = new User(500);
+  User user = new User();
   int unitsSelected = 1;
 
-  public MainPanel() {
+  public MainPanel(JFrame window) {
+    this.window = window;
+
+    // TODO: UPON CLOSING
+    window.addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        for (Company c : dMan.getCompanies()) {
+          if (c != null) {
+            c.saveData();
+          }
+        }
+        user.saveData();
+      }
+    });
+
     // TODO: Initial Setup
+    // LOAD USER DATA
+    user.loadData();
+    // SETUP PANEL
     setPreferredSize(new Dimension(900, 650));
     setBackground(bgColor);
     setLayout(new BorderLayout());
@@ -62,6 +82,7 @@ public class MainPanel extends JPanel {
           System.out.println("   " + pair[0] + ": " + pair[1]);
         }
         System.out.println("}\n");
+        c.setOpening();
       }
     }
 
@@ -84,6 +105,35 @@ public class MainPanel extends JPanel {
     title.setForeground(Color.WHITE);
     title.setBounds((int) (topBar.getPreferredSize().getWidth() / 2) - 50, 4, 200, 40);
     topBar.add(title);
+
+    JButton cookieClickerButton = new JButton("Bored?");
+    cookieClickerButton.setBounds((int) getPreferredSize().getWidth() - 80, 0, 80, 20);
+    cookieClickerButton.setFont(font1.deriveFont(Font.BOLD, 12));
+    cookieClickerButton.setForeground(Color.WHITE);
+    cookieClickerButton.setFocusable(false);
+    cookieClickerButton.setBackground(color2);
+    cookieClickerButton.setBorderPainted(false);
+    cookieClickerButton.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        setCursor(new Cursor(Cursor.HAND_CURSOR));
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+      }
+    });
+    cookieClickerButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        removeThisPanel();
+        window.add(new CookiePanel(window));
+        window.revalidate();
+        window.repaint();
+      }
+    });
+    topBar.add(cookieClickerButton);
 
     add(topBar, BorderLayout.NORTH);
 
@@ -111,7 +161,7 @@ public class MainPanel extends JPanel {
     dotsToggleLabel.setForeground(Color.WHITE);
     centerPanel.add(dotsToggleLabel);
 
-    JButton toggleDotsButton = new JButton(new ImageIcon(getClass().getResource("/switch_on.png")));
+    JButton toggleDotsButton = new JButton(new ImageIcon(getClass().getResource("/switch_off.png")));
     toggleDotsButton.setBounds(130,450, 30,30);
     toggleDotsButton.setBorderPainted(false);
     toggleDotsButton.setContentAreaFilled(false);
@@ -297,13 +347,14 @@ public class MainPanel extends JPanel {
     g2.setFont(font1.deriveFont(Font.PLAIN, 18));
     g2.drawString(dMan.getTickers().get(selectedCompany), 5, 40);
     // VALUE
+    g2.setColor(Color.ORANGE);
     g2.drawString("$" + df.format(c.data.get(c.data.size() - 1)[1]), 5, 65);
     // $ UP/DOWN SINCE OPEN
     double updown = (c.data.get(c.data.size() - 1)[1] / c.data.get(0)[1]) * 100;
     if (c.data.get(c.data.size() - 1)[1] < c.data.get(0)[1]) {
       g2.setColor(Color.RED);
       try {
-        g2.drawImage(ImageIO.read(getClass().getResourceAsStream("down.png")), 0, 68, null);
+        g2.drawImage(ImageIO.read(getClass().getResourceAsStream("/down.png")), 0, 68, null);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -311,7 +362,7 @@ public class MainPanel extends JPanel {
     } else {
       g2.setColor(Color.GREEN);
       try {
-        g2.drawImage(ImageIO.read(getClass().getResourceAsStream("up.png")), 0, 68, null);
+        g2.drawImage(ImageIO.read(getClass().getResourceAsStream("/up.png")), 0, 68, null);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -336,7 +387,7 @@ public class MainPanel extends JPanel {
         }
 //        System.out.println("Doing it");
         try {
-          sleep(1000);
+          sleep(updateTime * 1000);
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -406,5 +457,9 @@ public class MainPanel extends JPanel {
         }
       }
     });
+  }
+
+  public void removeThisPanel() {
+    Main.removePanel(this);
   }
 }

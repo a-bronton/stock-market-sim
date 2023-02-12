@@ -1,7 +1,8 @@
+package stockTrading;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.security.spec.ECField;
 import java.util.HashMap;
 
 public class DataManager {
@@ -30,6 +31,7 @@ public class DataManager {
             try {
                 BufferedReader in = new BufferedReader(new FileReader(f));
                 String line = in.readLine();
+                companies[i].addUnitsOwned(Integer.parseInt(line.substring(35, line.length() - 1)));
                 while ((line = in.readLine()) != null) {
                     String[] pair = line.split(",");
                     companies[i].data.add(new double[]{Double.parseDouble(pair[0]), Double.parseDouble(pair[1])});

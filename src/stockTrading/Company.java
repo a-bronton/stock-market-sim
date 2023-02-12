@@ -1,9 +1,15 @@
+package stockTrading;
+
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Company {
     public ArrayList<double[]> data = new ArrayList<>();
     private int i = data.size();
+    private double opening;
 
     private String name;
     public Company(String name) {
@@ -16,10 +22,14 @@ public class Company {
 
     private int unitsOwned = 0;
 
+    public void setOpening() {
+        opening = data.get(0)[1];
+    }
+
     public void addData() {
-//        if (data.size() > 120) {
-//            data.remove(0);
-//        }
+        if (data.size() > 120) {
+            data.remove(0);
+        }
         i++;
 
         double randVal = data.get(data.size() - 1)[1] + (Math.random() * 20) - 10;
@@ -43,11 +53,27 @@ public class Company {
     }
 
     public double getOpening() {
-        return data.get(0)[1];
+        return opening;
     }
 
     public double getCurrentValue() {
         return data.get(data.size() - 1)[1];
+    }
+
+    public void saveData() {
+        try {
+            PrintWriter out = new PrintWriter(new FileWriter("dataFiles/companyDataFiles/" + name + ".txt"));
+            out.println("[MINUTE], [VALUE], [STOCKS OWNED = " + unitsOwned + "]");
+
+            for (double[] pair : data) {
+                out.println(pair[0] + "," + pair[1]);
+            }
+
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
