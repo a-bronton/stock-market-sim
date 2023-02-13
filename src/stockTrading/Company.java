@@ -1,13 +1,11 @@
 package stockTrading;
 
-import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedList;
 
 public class Company {
-    public ArrayList<double[]> data = new ArrayList<>();
+    public LinkedList<double[]> data = new LinkedList<>();
     private int i = data.size();
     private double opening;
 
@@ -63,7 +61,7 @@ public class Company {
     public void saveData() {
         try {
             PrintWriter out = new PrintWriter(new FileWriter("dataFiles/companyDataFiles/" + name + ".txt"));
-            out.println("[MINUTE], [VALUE], [STOCKS OWNED = " + unitsOwned + "]");
+            out.println("[MINUTE], [VALUE], [SHARES OWNED = " + unitsOwned + "]");
 
             for (double[] pair : data) {
                 out.println(pair[0] + "," + pair[1]);

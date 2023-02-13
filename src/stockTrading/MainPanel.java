@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class MainPanel extends JPanel {
@@ -18,7 +19,7 @@ public class MainPanel extends JPanel {
 
   // TODO: General Fields
   private String selectedCompany;
-  private int updateTime = 10; // (SECONDS)
+  private int updateTime = 3; // (SECONDS)
 
   // TODO: Colors
   private Color bgColor = new Color(47, 47, 47);
@@ -127,6 +128,14 @@ public class MainPanel extends JPanel {
     cookieClickerButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
+        // SAVE DATA
+        for (Company c : dMan.getCompanies()) {
+          if (c != null) {
+            c.saveData();
+          }
+        }
+        user.saveData();
+
         removeThisPanel();
         window.add(new CookiePanel(window));
         window.revalidate();
@@ -192,7 +201,9 @@ public class MainPanel extends JPanel {
     });
     centerPanel.add(toggleDotsButton);
 
-    balanceLabel = new JLabel("Balance: $" + user.getBalance());
+    DecimalFormat df = new DecimalFormat("0.00");
+
+    balanceLabel = new JLabel("Balance: $" + df.format(user.getBalance()));
     balanceLabel.setForeground(Color.WHITE);
     balanceLabel.setFont(font1.deriveFont(Font.BOLD, 18));
     balanceLabel.setBounds(100, 470, 200, 40);
@@ -230,7 +241,7 @@ public class MainPanel extends JPanel {
     incrementDownButton.setBounds(100 + (int) stockGraph.getBounds().getWidth() - 80 - 30, 480, 30, 30);
     centerPanel.add(incrementDownButton);
 
-    unitsOwnedLabel = new JLabel("Units Owned: 0");
+    unitsOwnedLabel = new JLabel("Shares Owned: 0");
     unitsOwnedLabel.setForeground(Color.WHITE);
     unitsOwnedLabel.setBounds((int) stockGraph.getBounds().getWidth() - 135, 450, 135, 30);
     unitsOwnedLabel.setFont(font1.deriveFont(Font.PLAIN, 15));
@@ -294,7 +305,7 @@ public class MainPanel extends JPanel {
 
           // TODO: DISPLAY
           displayData(dMan.getCompany(selectedCompany), (Graphics2D) stockGraph.getGraphics());
-          unitsOwnedLabel.setText("Units Owned: " + dMan.getCompany(selectedCompany).getUnitsOwned());
+          unitsOwnedLabel.setText("Shares Owned: " + dMan.getCompany(selectedCompany).getUnitsOwned());
         }
       });
 
@@ -308,7 +319,7 @@ public class MainPanel extends JPanel {
     g2.setStroke(new BasicStroke(3));
     g2.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
 
-    ArrayList<double[]> data = c.data;
+    LinkedList<double[]> data = c.data;
     if (c.getCurrentValue() <= data.get(data.size() - 2)[1]) {
       g2.setColor(Color.RED);
     } else {
@@ -379,13 +390,17 @@ public class MainPanel extends JPanel {
     @Override
     public void run() {
       while (true) {
-        Graphics2D g2 = (Graphics2D) stockGraph.getGraphics();
-        if (selectedCompany != null) {
-          stockGraph.paint(g2);
-          dMan.getCompany(selectedCompany).addData();
-          displayData(dMan.getCompany(selectedCompany), g2);
+        try {
+          Graphics2D g2 = (Graphics2D) stockGraph.getGraphics();
+          if (selectedCompany != null) {
+            stockGraph.paint(g2);
+            dMan.getCompany(selectedCompany).addData();
+            displayData(dMan.getCompany(selectedCompany), g2);
+          }
+        } catch (Exception e) {
+
         }
-//        System.out.println("Doing it");
+
         try {
           sleep(updateTime * 1000);
         } catch (Exception e) {
@@ -405,7 +420,7 @@ public class MainPanel extends JPanel {
           user.subtractFromBalance(company.getCurrentValue());
           balanceLabel.setText("Balance: $" + df.format(user.getBalance()));
           company.addUnitsOwned(unitsSelected);
-          unitsOwnedLabel.setText("Units Owned: " + company.getUnitsOwned());
+          unitsOwnedLabel.setText("Shares Owned: " + company.getUnitsOwned());
         } else {
           JOptionPane.showMessageDialog(null, "Insufficient Funds");
         }
@@ -419,7 +434,7 @@ public class MainPanel extends JPanel {
           user.addToBalance(dMan.getCompany(selectedCompany).getCurrentValue() * unitsSelected);
           balanceLabel.setText("Balance: $" + df.format(user.getBalance()));
           dMan.getCompany(selectedCompany).addUnitsOwned(-unitsSelected);
-          unitsOwnedLabel.setText("Units Owned: " + dMan.getCompany(selectedCompany).getUnitsOwned());
+          unitsOwnedLabel.setText("Shares Owned: " + dMan.getCompany(selectedCompany).getUnitsOwned());
         }
       }
     });
