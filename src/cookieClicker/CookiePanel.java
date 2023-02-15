@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class CookiePanel extends JPanel {
 
@@ -19,6 +20,7 @@ public class CookiePanel extends JPanel {
     // TODO: BUTTONS/LABELS
     private JButton cookieButton;
     private JLabel cookiesLabel;
+    private JLabel cpsLabel;
 
     // TODO: PANELS
     private JPanel rightPanel;
@@ -30,7 +32,7 @@ public class CookiePanel extends JPanel {
     private DataManager dm = new DataManager(this);
 
     // TODO: USER INFO
-    private ArrayList<CookieMaker> makers = new ArrayList<CookieMaker>();
+    private static ArrayList<CookieMaker> makers = new ArrayList<CookieMaker>();
 
     public CookiePanel(JFrame window) {
         // DATA HANDLING
@@ -98,8 +100,15 @@ public class CookiePanel extends JPanel {
         cookiesLabel.setBackground(Color.RED);
         leftPanel.add(cookiesLabel);
 
+        cpsLabel = new JLabel("CPS: " + getCPS());
+        cpsLabel.setBounds(0, 80, (int) leftPanel.getPreferredSize().getWidth(), 40);
+        cpsLabel.setFont(new Font("DIALOG", Font.PLAIN, 25));
+        cpsLabel.setHorizontalAlignment(JLabel.CENTER);
+        cpsLabel.setForeground(Color.WHITE);
+        leftPanel.add(cpsLabel);
+
         cookieButton = new JButton(new ImageIcon(getClass().getResource("/cookieClicker/cookie.png")));
-        cookieButton.setBounds((int) (leftPanel.getPreferredSize().getWidth() / 2) - 200, (int) (leftPanel.getPreferredSize().getHeight() / 3) - 200, 400, 400);
+        cookieButton.setBounds((int) (leftPanel.getPreferredSize().getWidth() / 2) - 110, (int) (leftPanel.getPreferredSize().getHeight() / 2.5) - 110, 220, 220);
         cookieButton.setContentAreaFilled(false);
         cookieButton.setBorderPainted(false);
         cookieButton.setFocusable(false);
@@ -155,20 +164,19 @@ public class CookiePanel extends JPanel {
     public class CookieMakerBuyButton extends JPanel {
         public CookieMakerBuyButton(CookieMaker cMaker) {
             setLayout(null);
-            setPreferredSize(new Dimension((int) rightPanel.getPreferredSize().getWidth(), 40));
+            setPreferredSize(new Dimension((int) rightPanel.getPreferredSize().getWidth(), 63));
             setBackground(Color.LIGHT_GRAY);
 
-            JButton buyButton = new JButton("Buy");
-            buyButton.setBounds(0, 0, 40, 40);
-            buyButton.setFocusable(false);
-            add(buyButton);
+            JLabel picLabel = new JLabel(cMaker.getImage());
+            picLabel.setBounds(0, 0, 63, 63);
+            add(picLabel);
 
             JLabel nameLabel = new JLabel(cMaker.getName());
-            nameLabel.setBounds(40, 0, 200, 20);
+            nameLabel.setBounds(70, 0, 200, 20);
             add(nameLabel);
 
             JLabel priceLabel = new JLabel(cMaker.getPrice() + " cookies");
-            priceLabel.setBounds(40, 20, 200, 20);
+            priceLabel.setBounds(70, 20, 200, 20);
             add(priceLabel);
 
             // TODO: LISTENERS
@@ -179,6 +187,7 @@ public class CookiePanel extends JPanel {
                         cookies -= cMaker.getPrice();
                         cookiesLabel.setText("Cookies: " + cookies);
                         makers.add(cMaker);
+                        cpsLabel.setText("CPS: " + getCPS());
                     } else {
                         JOptionPane.showMessageDialog(null, "You cannot afford this");
                     }
@@ -200,17 +209,45 @@ public class CookiePanel extends JPanel {
     public class AddCookiesThread extends Thread {
         public void run() {
             while (true) {
-                for (CookieMaker cMaker : makers) {
-                    cookies += cMaker.getProduction();
-                    cookiesLabel.setText("Cookies: " + cookies);
-                }
-
                 try {
+                    for (CookieMaker cMaker : makers) {
+                        cookies += cMaker.getProduction();
+                        cookiesLabel.setText("Cookies: " + cookies);
+                    }
+
                     sleep(1000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    public int getCPS() {
+        int cps = 0;
+        for (CookieMaker cm : makers) {
+            cps += cm.getProduction();
+        }
+        return cps;
+    }
+
+    public static ArrayList<CookieMaker> getMakers() {
+        return makers;
+    }
+
+    public void addMakers(String name, int count) {
+
+        switch (name) {
+            case "Cursor":
+                for (int i = 0; i < count; i++) {
+                    makers.add(new cookieClicker.cookiemakers.Cursor());
+                }
+                break;
+            case "Grandma":
+                for (int i = 0; i < count; i++) {
+                    makers.add(new Grandma());
+                }
+                break;
         }
     }
 }
