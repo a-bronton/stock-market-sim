@@ -1,14 +1,11 @@
 package stockTrading;
 
-import cookieClicker.CookiePanel;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -101,48 +98,11 @@ public class MainPanel extends JPanel {
     topBar.setBackground(color2);
     topBar.setPreferredSize(new Dimension((int) getPreferredSize().getWidth(), 50));
 
-    JLabel title = new JLabel("Stocks");
+    JLabel title = new JLabel("STOCKS");
     title.setFont(font1.deriveFont(Font.BOLD, 32));
     title.setForeground(Color.WHITE);
     title.setBounds((int) (topBar.getPreferredSize().getWidth() / 2) - 50, 4, 200, 40);
     topBar.add(title);
-
-    JButton cookieClickerButton = new JButton("Bored?");
-    cookieClickerButton.setBounds((int) getPreferredSize().getWidth() - 80, 0, 80, 20);
-    cookieClickerButton.setFont(font1.deriveFont(Font.BOLD, 12));
-    cookieClickerButton.setForeground(Color.WHITE);
-    cookieClickerButton.setFocusable(false);
-    cookieClickerButton.setBackground(color2);
-    cookieClickerButton.setBorderPainted(false);
-    cookieClickerButton.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseEntered(MouseEvent e) {
-        setCursor(new Cursor(Cursor.HAND_CURSOR));
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-      }
-    });
-    cookieClickerButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        // SAVE DATA
-        for (Company c : dMan.getCompanies()) {
-          if (c != null) {
-            c.saveData();
-          }
-        }
-        user.saveData();
-
-        removeThisPanel();
-        window.add(new CookiePanel(window));
-        window.revalidate();
-        window.repaint();
-      }
-    });
-    topBar.add(cookieClickerButton);
 
     add(topBar, BorderLayout.NORTH);
 
@@ -160,7 +120,7 @@ public class MainPanel extends JPanel {
     // TODO: CENTER PANEL
     centerPanel.setBackground(bgColor);
 
-    stockGraph.setBackground(color2);
+    stockGraph.setBackground(bgColor);
     stockGraph.setBounds(100, 25, 560, 425);
     stockGraph.setDoubleBuffered(true);
     centerPanel.add(stockGraph);
@@ -313,12 +273,20 @@ public class MainPanel extends JPanel {
   }
 
   public void displayData(Company c, Graphics2D g2) {
-//    System.out.println("Displaying data for: " + c.getName());
+    // TODO: ERASE
     stockGraph.paint(g2);
+
+    // TODO: SETUP GRAPHICS
     g2.setColor(Color.GREEN);
     g2.setStroke(new BasicStroke(3));
     g2.setRenderingHints(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
 
+    // TODO: GRAPH BACKGROUND
+    Rectangle graphBounds = stockGraph.getBounds();
+    g2.setColor(color2);
+    g2.fillRoundRect(0, 0, graphBounds.width, graphBounds.height, 10, 10);
+
+    // TODO: COLOR BASED ON MOST RECENT VALUE
     LinkedList<double[]> data = c.data;
     if (c.getCurrentValue() <= data.get(data.size() - 2)[1]) {
       g2.setColor(Color.RED);
@@ -326,14 +294,15 @@ public class MainPanel extends JPanel {
       g2.setColor(Color.GREEN);
     }
 
+    // TODO: CALCULATE X INCREMENT OF POINTS
     double increment = stockGraph.getBounds().getWidth() / data.size();
-//    System.out.println("Width: " + stockGraph.getBounds().getWidth());
-//    System.out.println("Increment: " + increment);
 
+    // TODO: Create 2D Array Of Points
     int[][] pts = new int[data.size()][data.size()];
 
-    int x = 0;
-    int i = 0;
+    int x = 0; // x coordinate of point
+    int i = 0; // which point is being drawn
+    // TODO: FILL IN POINTS & DOTS IF ENABLED
     for (double[] pair : data) {
       if (dotsEnabled) {
         g2.fillOval(x - 3, (int) stockGraph.getBounds().getHeight() - (int) pair[1] - 3, 6, 6);
@@ -344,6 +313,7 @@ public class MainPanel extends JPanel {
       i++;
     }
 
+    // TODO: DRAW LINES BETWEEN POINTS
     for (int j = 0; j < pts.length - 1; j++) {
       g2.drawLine(pts[j][0], pts[j][1], pts[j + 1][0], pts[j + 1][1]);
     }
@@ -351,35 +321,36 @@ public class MainPanel extends JPanel {
     // TODO: TEXTS
     DecimalFormat df = new DecimalFormat("0.00");
     g2.setColor(Color.WHITE);
+
     // TICKER SYMBOL
     g2.setFont(font1.deriveFont(Font.BOLD, 22));
     g2.drawString(selectedCompany, 5, 20);
+
     // COMPANY NAME
     g2.setFont(font1.deriveFont(Font.PLAIN, 18));
     g2.drawString(dMan.getTickers().get(selectedCompany), 5, 40);
+
     // VALUE
     g2.setColor(Color.ORANGE);
     g2.drawString("$" + df.format(c.data.get(c.data.size() - 1)[1]), 5, 65);
+
     // $ UP/DOWN SINCE OPEN
-    double updown = (c.data.get(c.data.size() - 1)[1] / c.data.get(0)[1]) * 100;
-    if (c.data.get(c.data.size() - 1)[1] < c.data.get(0)[1]) {
-      g2.setColor(Color.RED);
-      try {
+    double upDown = (c.data.get(c.data.size() - 1)[1] / c.data.get(0)[1]) * 100;
+    try {
+      if (c.data.get(c.data.size() - 1)[1] < c.data.get(0)[1]) {
+        g2.setColor(Color.RED);
         g2.drawImage(ImageIO.read(getClass().getResourceAsStream("/down.png")), 0, 68, null);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-      g2.drawString("-" + df.format(updown) + "%", 30, 90);
-    } else {
-      g2.setColor(Color.GREEN);
-      try {
+        g2.drawString("-" + df.format(upDown) + "%", 30, 90);
+      } else {
+        g2.setColor(Color.GREEN);
         g2.drawImage(ImageIO.read(getClass().getResourceAsStream("/up.png")), 0, 68, null);
-      } catch (Exception e) {
-        e.printStackTrace();
+        g2.drawString(df.format(upDown) + "%", 30, 90);
       }
-      g2.drawString(df.format(updown) + "%", 30, 90);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-    // OPENING
+
+    // TODO: OPENING PRICE
     g2.setColor(Color.WHITE);
     String opening = "Opening: $" + df.format(c.getOpening());
     int textWidth = (int) g2.getFontMetrics().getStringBounds(opening, g2).getWidth();
@@ -397,8 +368,14 @@ public class MainPanel extends JPanel {
             dMan.getCompany(selectedCompany).addData();
             displayData(dMan.getCompany(selectedCompany), g2);
           }
+//          else {
+//            stockGraph.paint(g2);
+//            String instructionText = "Select A Company";
+//            int textWidth = (int) g2.getFontMetrics().getStringBounds(instructionText, g2).getWidth();
+//            g2.drawString(instructionText, (int) stockGraph.getBounds().getWidth() / 2 - (textWidth / 2), (int) stockGraph.getBounds().getHeight() / 2);
+//          }
         } catch (Exception e) {
-
+          e.printStackTrace();
         }
 
         try {
@@ -472,9 +449,5 @@ public class MainPanel extends JPanel {
         }
       }
     });
-  }
-
-  public void removeThisPanel() {
-    Main.removePanel(this);
   }
 }

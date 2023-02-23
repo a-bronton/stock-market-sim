@@ -1,3 +1,0 @@
-[MAKER TYPE], [AMOUNT]
-Cursor,1
-Grandma,1
