@@ -1,9 +1,8 @@
 package stockTrading;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class DataManager {
 
@@ -43,6 +42,23 @@ public class DataManager {
         }
     }
 
+    public void saveTickers() {
+        try {
+            PrintWriter out = new PrintWriter(new FileWriter("dataFiles/tickerSymbols.txt"));
+            out.println("[TICKER], [COMPANY NAME]");
+
+            for (Map.Entry<String, String> company : tickers.entrySet()) {
+                out.println(company.getKey() + "-//-" + company.getValue());
+            }
+
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public HashMap<String, String> getTickers() {
         return tickers;
     }
@@ -58,6 +74,25 @@ public class DataManager {
       }
     }
     return null;
+  }
+
+  public void addCompanyAndTicker(String name, String ticker) {
+        tickers.put(ticker, name);
+
+        try {
+            File f = new File("dataFiles/companyDataFiles/" + ticker + ".txt");
+            f.createNewFile();
+
+            // INITIAL DATA
+            PrintWriter out = new PrintWriter(new FileWriter(f));
+            out.println("[MINUTE], [VALUE], [SHARES OWNED = 0]");
+            out.println("0,0");
+
+            out.flush();
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
   }
 
 }

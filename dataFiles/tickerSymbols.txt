@@ -1,7 +1,7 @@
 [TICKER], [COMPANY NAME]
+MSFT-//-Microsoft Corp
+GOOGL-//-Alphabet Inc
 AAPL-//-Apple Inc
 TSLA-//-Tesla Inc
+TEST-//-Test
 AMZN-//-Amazon.com, Inc
-GOOGL-//-Alphabet Inc
-MSFT-//-Microsoft Corp
-TEST-//-Testing Inc
